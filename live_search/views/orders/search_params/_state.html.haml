@@ -1,0 +1,86 @@
+- human_param ||= @human_param
+- param_name ||= @partial
+- current_value = "0" if current_value.blank?
+- current_value = current_value.split(':').uniq
+- its_all = '0'.in?(current_value)
+
+%span.human_param
+  - if its_all
+    Все заявки
+  - else
+    Заявки в состоянии
+    - state_names = OrderState.where(id: current_value).collect &:name
+    %b= state_names.join(', ')
+%span.square{ value: '0', class: "mix #{"current" if its_all }", title: "Все заявки"}
+  %span.set ✓
+  %span.unset x
+- OrderState.all.each do |order_state|
+  - current_state = !its_all && order_state.id.to_s.in?(current_value)
+  %span.square{value: order_state.id, class: "#{order_state.shortname} #{"current" if current_state }", title: order_state.name, onclick: ''}
+    %span.set ✓
+    %span.unset x
+
+:javascript
+  $(function(){
+    flag = false
+    $("#search_text_params .search_param#state").find("span.square").on('touchstart click',function(){
+      if (!flag){
+        flag = true;
+        param_block = $(this).closest('.search_param')
+        hidden_search_form = $("#hidden_search_form:first form")
+        input = hidden_search_form.find("input#state")
+        prev_current_blocks = param_block.find("span.square.current")
+        first_block = param_block.find(".square:first")
+        prev_val = input.val()
+        v = $(this).attr("value")
+        if (!$(this).hasClass("current")){
+          if (v == '0' || prev_current_blocks.length == 4){ // кликнули на "Все состояния" или ранее были выбраны почти все состояния
+            prev_current_blocks.removeClass("current")
+            first_block.addClass('current')
+            input.val('0')
+            human_param = first_block.attr('title')
+          }else{ // кликнули конкретное состояние и набор состояний ещё не полон...
+            var state_names = [ this.getAttribute('title') ]
+            if (prev_val == '0' || prev_val == ''){ // а ранее были выбраны все состояния
+              first_block.removeClass("current")
+              input.val(v)
+            }else{ // вклиниваемся в значение...
+              prev_current_blocks.each(function(){
+                state_names.push(this.getAttribute('title'))
+              })
+              input.val(prev_val + ':' + v)
+            }
+            human_param = 'Заявки в состоянии <b>' + state_names.join(', ') + '</b>'
+            $(this).addClass("current")
+          }
+          param_block.find("span.human_param").html(human_param)
+          hidden_search_form.submit();
+        } else { // клик по ранее выбранному состоянию
+          if (v != '0'){
+            if (prev_val.length == 1){ // только одно состояние было выбрано ранее
+              first_block.addClass('current')
+              input.val('0')
+              human_param = first_block.attr('title')
+            }else{// вычеркиваем ранее выбранное состояние
+              var state_names = []
+              var removed_value = v;
+              var input_values = [];
+              prev_current_blocks.each(function(){
+                this_value = this.getAttribute('value')
+                if (this_value != removed_value){
+                  state_names.push(this.getAttribute('title'))
+                  input_values.push(this_value)
+                }
+              })
+              input.val(input_values.join(':'))
+              human_param = 'Заявки в состоянии <b>' + state_names.join(', ') + '</b>'
+            }
+            $(this).removeClass('current')
+            param_block.find("span.human_param").html(human_param)
+            hidden_search_form.submit();
+          }
+        }
+        setTimeout(function(){ flag = false; }, 500);
+      }
+    })
+  })

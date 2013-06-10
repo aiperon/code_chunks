@@ -1,0 +1,23 @@
+-# Все параметры, применённые в данном запросе, в контексте роли текущего пользователя
+#search_text_params
+  - all_params = OrderSearch::PARAMS
+  .search_param{id: "state"}
+    = render partial: "orders/search_params/state", locals: {current_value: @search["state"] || "0", param_name: "state"}
+  - if current_user.is?("менеджер")
+    .search_param{id: "user_restricted"}
+      доступные Вам
+
+  - unless @search.blank?
+    - @search.each_pair do |k, v|
+      - if k != 'state' && all_params[k.to_sym] && !v.blank?
+        - v.split(':').each_with_index do |val, i|
+          = render partial: "shared/search/param", locals: {root: 'orders', param_name: k.to_s, current_value: val, copy_index: i}
+
+  .search_param{id: "add_filter"}
+    - hidden_filters = [:order_by]
+    Добавить фильтр
+    %a.icon.plus
+    %ul#param_selector
+      - all_params.each_pair do |k, v|
+        %li{id: k, class: k.in?(hidden_filters) && "hide"}
+          = link_to v, "orders/show_search_param?id=#{k}", remote: true

@@ -1,0 +1,8 @@
+#hidden_search_form
+  = form_for orders_path, method: "get" do |f|
+    = text_field_tag "state", @search["state"]
+
+    - @search.each_pair do |k,v|
+      - if k != "state" && k != 'page'
+        = text_field_tag k, v
+    = f.submit "Найти"

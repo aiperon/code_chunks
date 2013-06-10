@@ -1,0 +1,42 @@
+hidden_search_form = $("#hidden_search_form form")
+var submit_element = hidden_search_form.find("input[type=submit]")
+
+search_param_block = $("<%= escape_javascript(render("shared/search/param"))%>")
+
+prev_param_block = $("#search_text_params .search_param[data-id=<%= @partial %>]:last")
+if (prev_param_block.length == 0){
+  search_param_block.insertBefore(".search_param#add_filter")
+}
+else{
+  search_param_block.insertAfter(prev_param_block)
+  node = search_param_block[0].childNodes[0]
+  node.data = "или " + node.data
+}
+
+search_param_block.find(".valuable").each(function(){
+  name = this.getAttribute('name')
+  input_element = hidden_search_form.find("input[name='" + name + "']")
+
+  v = $(this).val()
+  if (input_element.length == 0){
+    if (this.nodeName == "SELECT")
+      input_element = $("<input name='" + name + "'/>")
+    else
+      input_element = $(this).clone().removeClass("valuable")
+    input_element.insertBefore(submit_element)
+  }
+  else{
+    old_val = input_element.val()
+    $(this).closest(".search_param").attr('data-copy-index', old_val.split(':').length)
+    v = old_val + ':' + v
+  }
+  input_element.val(v)
+})
+
+<% if @partial.in? ['state_move', 'state_have'] %>
+  $("#search_text_params #param_selector #<%= @partial %>").hide();
+<% end %>
+
+<% if @partial.in? ['created_at', 'pay_day', 'pay_driver_day', 'debt', 'customer_pay_method', 'transporter_pay_method']  %>
+  submit_element.click()
+<% end %>

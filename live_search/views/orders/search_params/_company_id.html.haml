@@ -1,0 +1,4 @@
+с заказчиком
+- id = @search["company_id"]
+= autocomplete_field_tag "company_name", id.blank? ? "" : Company.mine(current_client).find(id).name, autocomplete_company_name_orders_path, 'data-custom-id-element' => "#company_id", placeholder: "Введите часть названия... "
+= hidden_field_tag "company_id", id, class: "valuable"

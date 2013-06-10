@@ -1,0 +1,6 @@
+- title("Заявки на перевозку")
+%p= link_to('Добавить заявку', new_order_path, class: 'btn') unless current_user.is?(:бухгалтер)
+= render "search_text_params"
+= render "shared/search/form"
+#table_container
+  = render "table"

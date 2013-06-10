@@ -1,0 +1,10 @@
+- param_name ||= @partial
+- root ||= params[:controller]
+- hidden_filters = ['order_by']
+- copy_index ||= 0
+- current_value ||= @search[param_name]
+.search_param{'data-id' => param_name, class: param_name.in?(hidden_filters) && 'hide', 'data-copy-index' => copy_index}
+  - if copy_index > 0
+    или
+  = render partial: "#{root}/search_params/#{param_name.dup}", locals: { current_value: current_value, copy_index: copy_index }
+  %a.icon.close
